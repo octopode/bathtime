@@ -4,17 +4,25 @@
 Follow a supplied temperature program,
 logging process and reference temps all the way
 """
+## ATTENTION: this script is set up for Windows
+
+# the serial port to which the NESLAB waterbath is connected
+bathport = "COM11"
 
 from __future__ import print_function
 
-file_log = "~/Desktop/t_ramps/60-80-60_by2.tsv"
-
+from os import getcwd
 import sys
 import traceback
 import time
 import numpy as np
 import pandas as pd
 import neslabrte
+
+delay = 0.1 # approximate (overestimate) of sampling period in seconds
+
+# start a timestamped datalog file
+file_log = getcwd() + r"\thermolog_" + time.strftime("%Y%m%dT%H%M") + ".tsv"
         
 if not sys.stdin.isatty():
     # if a state table is passed on sys.stdin, read it
@@ -32,7 +40,7 @@ with open(file_log, 'a+', buffering=1) as hand_log:
     hand_log.write('\t'.join(header) + '\n')
     
     # init water bath
-    bath = neslabrte.NeslabController(port="/dev/cu.usbserial-FT4IVKAO1")
+    bath = neslabrte.NeslabController(port=bathport)
 
     ## run experiment
     
@@ -51,6 +59,7 @@ with open(file_log, 'a+', buffering=1) as hand_log:
     
         # make dicts for this state, the last, and the next
         state_curr = states.iloc[state_num+0].to_dict()
+        print(state_curr) #TEST
         
         time_state = time.time()
         
@@ -68,8 +77,10 @@ with open(file_log, 'a+', buffering=1) as hand_log:
                         "temp_int": bath.temp_get_int(),
                         "temp_ext": bath.temp_get_ext(),
                     }
+                    break
                 #except: pass
                 except: print(traceback.format_exc())
+            time.sleep(delay)
             data.update(state_curr) # add the command vars to the log
             hand_log.write('\t'.join([str(data[key]) for key in sorted(data.keys())]) + '\n')
             print("waiting {}/{} s".format(round(time.time()-time_state), data["time"]), file=sys.stderr, end='\r')
