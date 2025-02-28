@@ -7,7 +7,7 @@ logging process and reference temps all the way
 
 from __future__ import print_function
 
-file_log = "~/Desktop/t_ramps/60-80-60_by5.tsv"
+file_log = "~/Desktop/t_ramps/60-80-60_by2.tsv"
 
 import sys
 import traceback
